@@ -7,7 +7,6 @@ import pixabayApi from './Components/Service';
 import Loader from './Components/Loader';
 import Modal from './Components/Modal';
 
-const bodyRef = document.querySelector('body');
 class App extends Component {
   state = {
     images: [],
@@ -44,7 +43,13 @@ class App extends Component {
   };
 
   onChangeQuery = query => {
-    this.setState({ searchQuery: query, images: [], currentPage: 1 });
+    this.setState({
+      searchQuery: query,
+      images: [],
+      modalIndex: '',
+      currentPage: 1,
+      error: null,
+    });
   };
 
   fetchImages = () => {
@@ -76,27 +81,25 @@ class App extends Component {
   };
 
   modalImageForwardHandler = () => {
-    const { images, modalIndex } = this.state;
-    if (modalIndex >= images.length - 2) {
-      this.fetchImages();
-    }
     this.setState(prevState => ({
       modalIndex: prevState.modalIndex + 1,
     }));
+    const { images, modalIndex } = this.state;
+    if (images.length !== 0 && modalIndex >= images.length - 2) {
+      this.fetchImages();
+    }
   };
 
   render() {
-    const { modal, modalIndex, images, isLoading } = this.state;
-
+    const { error, modal, modalIndex, images, isLoading } = this.state;
+    const shouldRenderButtonLoadMore = images.length > 0 && !isLoading;
     return (
       <div>
-        {modal
-          ? bodyRef.classList.add('modal-open')
-          : bodyRef.classList.remove('modal-open')}
         <Searchbar onSubmit={this.onChangeQuery} />
+        {error && <p>Ooops! Something went wrong. Try again</p>}
         <ImageGallery images={images} onModalToggle={this.toggleModal} />
         {isLoading && <Loader />}
-        {images.length > 0 && !isLoading && (
+        {shouldRenderButtonLoadMore && (
           <Button fetchImages={this.fetchImages} />
         )}
         {modal && (
